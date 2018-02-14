@@ -1,0 +1,11 @@
+{
+    "name": "suitecrm/restclient",
+    "description": "A Rest Client for SuiteCRM",
+    "authors": [
+        {
+            "name": "p.ernst",
+            "email": "peter.ernst@salesagility.com"
+        }
+    ],
+    "require": {}
+}
