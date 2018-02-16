@@ -40,12 +40,23 @@
 
 namespace SuiteCRMRestClient;
 
+use SuiteCRMRestClient\Interfaces\ConfigurationAdapter;
 use SuiteCRMRestClient\Interfaces\DummyAdapter;
 
+/**
+ * Class AdapterLoader
+ * @package SuiteCRMRestClient
+ */
 class AdapterLoader
 {
+    /**
+     * @var string
+     */
     private static $activeAdapter = DummyAdapter::class;
 
+    /**
+     * @return ConfigurationAdapter
+     */
     public static function getAdapter()
     {
         return new static::$activeAdapter;
