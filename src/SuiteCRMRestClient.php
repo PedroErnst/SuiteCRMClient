@@ -40,7 +40,11 @@
 
 namespace SuiteCRMRestClient;
 
+include_once __DIR__ . '/Adapters/ConfigurationAdapter.php';
+include_once __DIR__ . '/Adapters/DummyAdapter.php';
+
 use SuiteCRMRestClient\Adapters\ConfigurationAdapter;
+use SuiteCRMRestClient\Adapters\DummyAdapter;
 
 /**
  * Class SuiteCRMRestClient
@@ -93,13 +97,20 @@ class SuiteCRMRestClient
     }
 
     /**
-     * @param ConfigurationAdapter|null $adapter
+     * @param ConfigurationAdapter $adapter
+     */
+    public static function init(ConfigurationAdapter $adapter)
+    {
+        self::$singleton = new self($adapter);
+    }
+
+    /**
      * @return SuiteCRMRestClient
      */
     public static function getInstance()
     {
         if (!self::$singleton) {
-            self::$singleton = new self(AdapterLoader::getAdapter());
+            die ('Rest Client not initialized. Call init() first.');
         }
         return self::$singleton;
     }
