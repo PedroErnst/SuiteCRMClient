@@ -40,8 +40,7 @@
 
 namespace SuiteCRMRestClient;
 
-use SuiteCRMRestClient\Interfaces\ConfigurationAdapter;
-use GuzzleHttp\Client;
+use SuiteCRMRestClient\Adapters\ConfigurationAdapter;
 
 /**
  * Class SuiteCRMRestClient
@@ -167,9 +166,23 @@ class SuiteCRMRestClient
      * @param string $api_route
      * @param array $params
      * @param string $type
-     * @return \Psr\Http\Message\StreamInterface
+     * @return array
      */
     private function sendRequest($api_route, $params, $type = 'GET')
+    {
+        if (class_exists('GuzzleHttp\Client')) {
+            return $this->sendGuzzleRequest($api_route, $params, $type);
+        }
+        return $this->sendCurlRequest($api_route, $params, $type);
+    }
+
+    /**
+     * @param string $api_route
+     * @param array $params
+     * @param string $type
+     * @return array
+     */
+    private function sendGuzzleRequest($api_route, $params, $type = 'GET')
     {
         $this->lastUrl = $this->cleanUrl($this->config->getURL()) . $api_route;
 
@@ -192,6 +205,48 @@ class SuiteCRMRestClient
         $result = $client->request($type, $this->lastUrl, $options);
 
         return $result->getBody();
+    }
+
+
+    /**
+     * @param string $api_route
+     * @param array $params
+     * @param string $type
+     * @return array
+     */
+    private function sendCurlRequest($api_route, $params, $type = 'GET')
+    {
+        ob_start();
+        $ch = curl_init();
+
+        $this->lastUrl = $this->cleanUrl($this->config->getURL()) . $api_route;
+
+        $postStr = json_encode($params);
+        $header = array(
+            'Content-type: application/vnd.api+json',
+            'Accept: application/vnd.api+json',
+        );
+
+        if ($type != 'GET') {
+            $header[] = 'Content-Length: ' . strlen($postStr);
+        }
+
+        if ($this->isLoggedIn()) {
+            $header[] = 'Authorization: Bearer ' . $this->access_token;
+        }
+
+        curl_setopt($ch, CURLOPT_URL, $this->lastUrl);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $type);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $postStr);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+        curl_setopt($ch, CURLOPT_COOKIE, 'XDEBUG_SESSION_START=13537');
+
+        $output = curl_exec($ch);
+        curl_close($ch);
+        ob_end_flush();
+
+        return $output;
     }
 
     /**
@@ -221,7 +276,7 @@ class SuiteCRMRestClient
         }
 
         $url = 'v8/modules/' . $module . '/' . $id . $fieldStr;
-        $result = $this->rest_request($url);
+        $result = $this->restRequest($url);
 
         return $this->evaluateResult($result);
     }
@@ -232,9 +287,12 @@ class SuiteCRMRestClient
      * @param string $type
      * @return array
      */
-    private function rest_request($api_route, $params = [], $type = 'GET')
+    private function restRequest($api_route, $params = [], $type = 'GET')
     {
         $result = '';
+
+        $this->login();
+
         try {
             $result = $this->sendRequest($api_route, $params, $type);
         } catch (\Exception $e) {
@@ -273,7 +331,7 @@ class SuiteCRMRestClient
     {
 
         $url = 'v8/modules/' . $module . '?filter[' . $module . ']=' . implode(',', $ids);
-        $result = $this->rest_request($url);
+        $result = $this->restRequest($url);
         return $this->evaluateResult($result);
     }
 
@@ -284,7 +342,7 @@ class SuiteCRMRestClient
     {
 
         $url = 'v8/modules/meta/languages';
-        $result = $this->rest_request($url);
+        $result = $this->restRequest($url);
 
         $data = $this->evaluateResult($result);
 
@@ -310,10 +368,10 @@ class SuiteCRMRestClient
         if ($id) {
             $postVars['data']['id'] = $id;
             $url = 'v8/modules/' . $module . '/' . $id;
-            $result = $this->rest_request($url, $postVars, 'PATCH');
+            $result = $this->restRequest($url, $postVars, 'PATCH');
         } else {
             $url = 'v8/modules/' . $module;
-            $result = $this->rest_request($url, $postVars, 'POST');
+            $result = $this->restRequest($url, $postVars, 'POST');
         }
 
         return $this->evaluateResult($result);
@@ -336,7 +394,7 @@ class SuiteCRMRestClient
         ];
 
         $url = 'v8/modules/' . $module1 . '/' . $module1_id . '/relationships/' . $module2;
-        $result = $this->rest_request($url, $data, 'POST');
+        $result = $this->restRequest($url, $data, 'POST');
 
         return $this->evaluateResult($result);
     }
@@ -350,7 +408,7 @@ class SuiteCRMRestClient
     public function getRelationships($module_name, $module_id, $related_module)
     {
         $url = 'v8/modules/' . $module_name . '/' . $module_id . '/relationships/' . $related_module;
-        $result = $this->rest_request($url);
+        $result = $this->restRequest($url);
 
         return $this->evaluateResult($result, 'data');
     }

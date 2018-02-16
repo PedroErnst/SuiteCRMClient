@@ -38,48 +38,101 @@
  * display the words "Powered by SugarCRM" and "Supercharged by SuiteCRM".
  */
 
-namespace SuiteCRMRestClient\Interfaces;
+namespace SuiteCRMRestClient\Adapters;
 
 /**
- * Interface ConfigurationAdapter
+ * Class DummyAdapter
+ *
+ * This adapter provides hardcoded values for the examples.
  *
  * @package SuiteCRMRestClient\Interfaces
  */
-interface ConfigurationAdapter
+class DummyAdapter implements ConfigurationAdapter
 {
     /**
-     * @return string
+     * @var string
      */
-    public function getGrantType();
+    private $rest_url = "http://php71/SuiteCRM-github-develop/api/";
+
+    /**
+     * @var string
+     */
+    private $rest_user = "admin";
+
+    /**
+     * @var string
+     */
+    private $rest_pass = "suitecrm";
+
+    /**
+     * @var string
+     */
+    private $rest_client = "1";
+
+    /**
+     * @var string
+     */
+    private $rest_secret = "client_secret";
+
+    /**
+     * @var string
+     */
+    private $grant_type = "password";
 
     /**
      * @return string
      */
-    public function getUserID();
+    public function getGrantType()
+    {
+        return $this->grant_type;
+    }
 
     /**
      * @return string
      */
-    public function getPassword();
+    public function getUserID()
+    {
+        return $this->rest_client;
+    }
 
     /**
      * @return string
      */
-    public function getURL();
+    public function getPassword()
+    {
+        return $this->rest_pass;
+    }
 
     /**
      * @return string
      */
-    public function getSecret();
+    public function getURL()
+    {
+        return $this->rest_url;
+    }
 
     /**
      * @return string
      */
-    public function getUser();
+    public function getSecret()
+    {
+        return $this->rest_secret;
+    }
+
+    /**
+     * @return string
+     */
+    public function getUser()
+    {
+        return $this->rest_user;
+    }
 
     /**
      * @param \Exception $e
-     * @return string
      */
-    public function handleException(\Exception $e);
+    public function handleException(\Exception $e)
+    {
+        echo $e->getMessage();
+        echo $e->getTraceAsString();
+    }
 }

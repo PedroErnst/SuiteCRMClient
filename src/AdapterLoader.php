@@ -40,8 +40,8 @@
 
 namespace SuiteCRMRestClient;
 
-use SuiteCRMRestClient\Interfaces\ConfigurationAdapter;
-use SuiteCRMRestClient\Interfaces\DummyAdapter;
+use SuiteCRMRestClient\Adapters\ConfigurationAdapter;
+use SuiteCRMRestClient\Adapters\DummyAdapter;
 
 /**
  * Class AdapterLoader
@@ -53,6 +53,19 @@ class AdapterLoader
      * @var string
      */
     private static $activeAdapter = DummyAdapter::class;
+
+    /**
+     * @var string
+     */
+    private static $activeAdapterFile = 'Adapters/DummyAdapter.php';
+
+    /**
+     * @return string
+     */
+    public static function getAdapterClassFile()
+    {
+        return static::$activeAdapterFile;
+    }
 
     /**
      * @return ConfigurationAdapter
