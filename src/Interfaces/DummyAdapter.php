@@ -40,50 +40,96 @@
 
 namespace SuiteCRMRestClient\Interfaces;
 
+/**
+ * Class DummyAdapter
+ *
+ * This adapter provides hardcoded values for the examples.
+ *
+ * @package SuiteCRMRestClient\Interfaces
+ */
 class DummyAdapter implements ConfigurationAdapter
 {
+    /**
+     * @var string
+     */
     private $rest_url = "http://php71/SuiteCRM-github-develop/api/";
 
+    /**
+     * @var string
+     */
     private $rest_user = "admin";
 
+    /**
+     * @var string
+     */
     private $rest_pass = "suitecrm";
 
+    /**
+     * @var string
+     */
     private $rest_client = "1";
 
+    /**
+     * @var string
+     */
     private $rest_secret = "client_secret";
 
+    /**
+     * @var string
+     */
     private $grant_type = "password";
 
+    /**
+     * @return string
+     */
     public function getGrantType()
     {
         return $this->grant_type;
     }
 
+    /**
+     * @return string
+     */
     public function getUserID()
     {
         return $this->rest_client;
     }
 
+    /**
+     * @return string
+     */
     public function getPassword()
     {
         return $this->rest_pass;
     }
 
+    /**
+     * @return string
+     */
     public function getURL()
     {
         return $this->rest_url;
     }
 
+    /**
+     * @return string
+     */
     public function getSecret()
     {
         return $this->rest_secret;
     }
 
+    /**
+     * @return string
+     */
     public function getUser()
     {
         return $this->rest_user;
     }
 
+    /**
+     * @param \Exception $e
+     */
     public function handleException(\Exception $e)
     {
         echo $e->getMessage();

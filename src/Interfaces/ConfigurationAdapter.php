@@ -40,13 +40,46 @@
 
 namespace SuiteCRMRestClient\Interfaces;
 
+/**
+ * Interface ConfigurationAdapter
+ *
+ * @package SuiteCRMRestClient\Interfaces
+ */
 interface ConfigurationAdapter
 {
+    /**
+     * @return string
+     */
     public function getGrantType();
+
+    /**
+     * @return string
+     */
     public function getUserID();
+
+    /**
+     * @return string
+     */
     public function getPassword();
+
+    /**
+     * @return string
+     */
     public function getURL();
+
+    /**
+     * @return string
+     */
     public function getSecret();
+
+    /**
+     * @return string
+     */
     public function getUser();
+
+    /**
+     * @param \Exception $e
+     * @return string
+     */
     public function handleException(\Exception $e);
 }

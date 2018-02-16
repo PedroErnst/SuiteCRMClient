@@ -39,44 +39,72 @@
  */
 
 namespace SuiteCRMRestClient;
+
 use SuiteCRMRestClient\Interfaces\ConfigurationAdapter;
 use GuzzleHttp\Client;
 
+/**
+ * Class SuiteCRMRestClient
+ * @package SuiteCRMRestClient
+ */
 class SuiteCRMRestClient
 {
+    /**
+     * @var SuiteCRMRestClient
+     */
     private static $singleton;
 
+    /**
+     * @var string
+     */
     private $token_type;
 
+    /**
+     * @var string
+     */
     private $token_expires;
 
+    /**
+     * @var string
+     */
     private $access_token;
 
+    /**
+     * @var string
+     */
     private $refresh_token;
 
+    /**
+     * @var ConfigurationAdapter
+     */
     private $config;
 
+    /**
+     * @var string
+     */
     private $lastUrl;
 
+    /**
+     * SuiteCRMRestClient constructor.
+     * @param ConfigurationAdapter $configurationAdapter
+     */
     public function __construct(ConfigurationAdapter $configurationAdapter)
     {
         $this->config = $configurationAdapter;
     }
 
-    private function cleanUrl($url)
-    {
-        $url = rtrim($url, '/');
-        $url .= '/';
-        $url = str_replace('/api/', '', $url);
-        $url .= '/api/';
-        return $url;
-    }
-
+    /**
+     * @param ConfigurationAdapter $adapter
+     */
     public static function init(ConfigurationAdapter $adapter)
     {
         self::getInstance($adapter);
     }
 
+    /**
+     * @param ConfigurationAdapter|null $adapter
+     * @return SuiteCRMRestClient
+     */
     public static function getInstance(ConfigurationAdapter $adapter = null)
     {
         if (!self::$singleton) {
@@ -89,30 +117,6 @@ class SuiteCRMRestClient
     }
 
     /**
-     * @param $api_route
-     * @param array $params
-     * @param string $type
-     * @return mixed
-     */
-    private function rest_request($api_route, $params = array(), $type = 'GET')
-    {
-        $result = '';
-        try {
-            $result = $this->sendRequest($api_route, $params, $type);
-        }
-        catch (\Exception $e) {
-            $this->config->handleException($e);
-        }
-
-        return json_decode($result, true);
-    }
-
-    private function isLoggedIn()
-    {
-        return isset($this->token_type);
-    }
-
-    /**
      * @return bool
      */
     public function login()
@@ -120,12 +124,19 @@ class SuiteCRMRestClient
         if (!$this->isLoggedIn()) {
             try {
                 $this->processLogin();
-            }
-            catch (\Exception $e) {
+            } catch (\Exception $e) {
                 $this->config->handleException($e);
             }
         }
         return $this->isLoggedIn();
+    }
+
+    /**
+     * @return bool
+     */
+    private function isLoggedIn()
+    {
+        return isset($this->token_type);
     }
 
     /**
@@ -135,14 +146,14 @@ class SuiteCRMRestClient
     private function processLogin()
     {
 
-        $params = array(
+        $params = [
             'grant_type' => $this->config->getGrantType(),
             'client_id' => $this->config->getUserID(),
             'client_secret' => $this->config->getSecret(),
             'username' => $this->config->getUser(),
             'password' => $this->config->getPassword(),
             'scope' => ''
-        );
+        ];
         $response_data = json_decode($this->sendRequest('oauth/access_token', $params, 'POST'), true);
 
         if (!empty($response_data['error'])) {
@@ -163,6 +174,12 @@ class SuiteCRMRestClient
         return $this->isLoggedIn();
     }
 
+    /**
+     * @param string $api_route
+     * @param array $params
+     * @param string $type
+     * @return \Psr\Http\Message\StreamInterface
+     */
     private function sendRequest($api_route, $params, $type = 'GET')
     {
         $this->lastUrl = $this->cleanUrl($this->config->getURL()) . $api_route;
@@ -188,6 +205,25 @@ class SuiteCRMRestClient
         return $result->getBody();
     }
 
+    /**
+     * @param string $url
+     * @return string
+     */
+    private function cleanUrl($url)
+    {
+        $url = rtrim($url, '/');
+        $url .= '/';
+        $url = str_replace('/api/', '', $url);
+        $url .= '/api/';
+        return $url;
+    }
+
+    /**
+     * @param string $module
+     * @param string $id
+     * @param array $fields
+     * @return array
+     */
     public function getEntry($module, $id, $fields = [])
     {
         $fieldStr = '';
@@ -201,14 +237,36 @@ class SuiteCRMRestClient
         return $this->evaluateResult($result);
     }
 
+    /**
+     * @param string $api_route
+     * @param array $params
+     * @param string $type
+     * @return array
+     */
+    private function rest_request($api_route, $params = [], $type = 'GET')
+    {
+        $result = '';
+        try {
+            $result = $this->sendRequest($api_route, $params, $type);
+        } catch (\Exception $e) {
+            $this->config->handleException($e);
+        }
+
+        return json_decode($result, true);
+    }
+
+    /**
+     * @param array $result
+     * @param string $key
+     * @return array
+     */
     private function evaluateResult($result, $key = '')
     {
         try {
             if (isset($result['errors']) && count($result['errors'])) {
                 throw new \Exception("Error while communicating with SuiteCRM: " . $result['errors'][0]['title']);
             }
-        }
-        catch (\Exception $e) {
+        } catch (\Exception $e) {
             $this->config->handleException($e);
         }
         if ($key) {
@@ -217,6 +275,11 @@ class SuiteCRMRestClient
         return $result;
     }
 
+    /**
+     * @param string $module
+     * @param array $ids
+     * @return mixed
+     */
     public function getEntries($module, Array $ids)
     {
 
@@ -225,6 +288,9 @@ class SuiteCRMRestClient
         return $this->evaluateResult($result);
     }
 
+    /**
+     * @return mixed
+     */
     public function getApplicationLanguage()
     {
 
@@ -236,16 +302,21 @@ class SuiteCRMRestClient
         return $data['meta']['application']['language'];
     }
 
+    /**
+     * @param string $module
+     * @param array $data
+     * @return array
+     */
     public function setEntry($module, $data)
     {
         $id = isset($data['id']) ? $data['id'] : '';
 
-        $postVars = array(
-            'data' => array(
+        $postVars = [
+            'data' => [
                 'type' => $module,
                 'attributes' => $data
-            )
-        );
+            ]
+        ];
 
         if ($id) {
             $postVars['data']['id'] = $id;
@@ -259,14 +330,21 @@ class SuiteCRMRestClient
         return $this->evaluateResult($result);
     }
 
+    /**
+     * @param string $module1
+     * @param string $module1_id
+     * @param string $module2
+     * @param string $module2_id
+     * @return array
+     */
     public function setRelationship($module1, $module1_id, $module2, $module2_id)
     {
-        $data = array(
-            'data' => array(
+        $data = [
+            'data' => [
                 'id' => $module2_id,
                 'type' => $module2,
-            )
-        );
+            ]
+        ];
 
         $url = 'v8/modules/' . $module1 . '/' . $module1_id . '/relationships/' . $module2;
         $result = $this->rest_request($url, $data, 'POST');
@@ -274,6 +352,12 @@ class SuiteCRMRestClient
         return $this->evaluateResult($result);
     }
 
+    /**
+     * @param string $module_name
+     * @param string $module_id
+     * @param string $related_module
+     * @return array
+     */
     public function getRelationships($module_name, $module_id, $related_module)
     {
         $url = 'v8/modules/' . $module_name . '/' . $module_id . '/relationships/' . $related_module;
