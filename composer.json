@@ -7,5 +7,12 @@
             "email": "peter.ernst@salesagility.com"
         }
     ],
-    "require": {}
+    "require": {
+        "guzzlehttp/guzzle": "^6.3"
+    },
+    "autoload": {
+        "psr-4": {
+            "SuiteCRMRestClient\\": "src/"
+        }
+    }
 }
