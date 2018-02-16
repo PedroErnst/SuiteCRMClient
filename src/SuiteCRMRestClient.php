@@ -94,24 +94,13 @@ class SuiteCRMRestClient
     }
 
     /**
-     * @param ConfigurationAdapter $adapter
-     */
-    public static function init(ConfigurationAdapter $adapter)
-    {
-        self::getInstance($adapter);
-    }
-
-    /**
      * @param ConfigurationAdapter|null $adapter
      * @return SuiteCRMRestClient
      */
-    public static function getInstance(ConfigurationAdapter $adapter = null)
+    public static function getInstance()
     {
         if (!self::$singleton) {
-            if (!$adapter) {
-                die("Calling uninitialized client without Adapter.");
-            }
-            self::$singleton = new self($adapter);
+            self::$singleton = new self(AdapterLoader::getAdapter());
         }
         return self::$singleton;
     }
