@@ -43,8 +43,8 @@ namespace SuiteCRMRestClient;
 include_once __DIR__ . '/Adapters/ConfigurationAdapter.php';
 include_once __DIR__ . '/Adapters/DummyAdapter.php';
 
+use GuzzleHttp\Client;
 use SuiteCRMRestClient\Adapters\ConfigurationAdapter;
-use SuiteCRMRestClient\Adapters\DummyAdapter;
 
 /**
  * Class SuiteCRMRestClient
@@ -177,21 +177,27 @@ class SuiteCRMRestClient
      * @param string $api_route
      * @param array $params
      * @param string $type
-     * @return array
+     * @return string
      */
     private function sendRequest($api_route, $params, $type = 'GET')
     {
         if (class_exists('GuzzleHttp\Client')) {
             return $this->sendGuzzleRequest($api_route, $params, $type);
+        } elseif (extension_loaded('curl')) {
+            return $this->sendCurlRequest($api_route, $params, $type);
+        } else {
+            $this->config->handleException(
+                new \Exception('Neither Guzzle nor Curl installed. Aborting.')
+            );
+            return '';
         }
-        return $this->sendCurlRequest($api_route, $params, $type);
     }
 
     /**
      * @param string $api_route
      * @param array $params
      * @param string $type
-     * @return array
+     * @return string
      */
     private function sendGuzzleRequest($api_route, $params, $type = 'GET')
     {
@@ -223,7 +229,7 @@ class SuiteCRMRestClient
      * @param string $api_route
      * @param array $params
      * @param string $type
-     * @return array
+     * @return string
      */
     private function sendCurlRequest($api_route, $params, $type = 'GET')
     {
