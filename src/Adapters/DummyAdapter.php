@@ -67,12 +67,12 @@ class DummyAdapter implements ConfigurationAdapter
     /**
      * @var string
      */
-    private $rest_client = "1";
+    private $rest_client = "API-4c59-f678-cecc-6594-5a8d9c704473";
 
     /**
      * @var string
      */
-    private $rest_secret = "client_secret";
+    private $rest_secret = "secret";
 
     /**
      * @var string
